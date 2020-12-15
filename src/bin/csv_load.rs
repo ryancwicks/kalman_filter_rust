@@ -4,24 +4,6 @@ use std::path::Path;
 use std::error::Error;
 use std::ffi::OsString;
 
-type Time = f64;
-type Gyro = f64;
-type Wheel = f64;
-
-fn load_csv <P: AsRef<Path>> (filename: P) -> Result<(csv::Reader<File>, usize), Box<dyn Error>> {
-
-    let file = File::open(filename)?;
-    let mut rdr = csv::ReaderBuilder::new()
-                    .has_headers(false)
-                    .from_reader(file);
-    let mut length: usize = 0;
-    let start_pos = rdr.position().clone();
-    for _ in rdr.records() {
-        length += 1;
-    }
-    rdr.seek(start_pos)?;
-    return Ok((rdr, length))
-}
 
 fn get_nth_arg( n: usize) -> Result<OsString, Box<dyn Error>> {
     match env::args_os().nth( n ) {
@@ -32,33 +14,24 @@ fn get_nth_arg( n: usize) -> Result<OsString, Box<dyn Error>> {
 
 fn run() -> Result<(), Box<dyn Error>> {
 
-    let time_path = get_nth_arg(1)?;
-    let mut time_records = load_csv (time_path)?;
-    let mut time_vec: Vec<Time> = Vec::with_capacity(time_records.1);
+    let time_file = "data/time.csv";
+    let gyro_file = "data/u_gyro.csv";
+    let wheel_file = "data/u_wheel.csv";
+    let pos_file = "data/r_zw_t.csv";
+    let angle_file = "data/omega_bt.csv";
+ 
 
-    for result in time_records.0.deserialize() {
-        time_vec.push(result?);
-    }
+    let measurements = Measurements::load(time_file, wheel_file, gyro_file)?;
+    let poses = Poses::load(time_file, pos_file, angle_file)?;
 
-    let gyro_path = get_nth_arg(2)?;
-    let mut gyro_records = load_csv (gyro_path)?;
-    let mut gyro_vec: Vec<Gyro> = Vec::with_capacity(gyro_records.1);
+    println!("{}", measurements[0]);
+    println!("...");
+    println!("{}\n", measurements[measurements.length()-1]);
+    println!("{}", poses[0]);
+    println!("...");
+    println!("{}", poses[poses.length()-1]);
 
-    for result in gyro_records.0.deserialize() {
-        gyro_vec.push(result?);
-    }
-
-    let wheel_path = get_nth_arg(3)?;
-    let mut wheel_records = load_csv (wheel_path)?;
-    let mut wheel_vec: Vec<Wheel> = Vec::with_capacity(wheel_records.1);
-   
-    for result in wheel_records.0.deserialize() {
-        wheel_vec.push(result?);
-    }
-    
-    println!{"Times: {}\nGyro: {}\nWheel: {}", time_vec.len(), gyro_vec.len(), wheel_vec.len()};
-
-    return Ok(())
+    Ok(())
 }
 
 fn main() {
