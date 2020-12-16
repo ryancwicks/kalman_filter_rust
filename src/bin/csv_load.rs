@@ -1,9 +1,8 @@
 use std::env;
-use std::fs::File;
-use std::path::Path;
 use std::error::Error;
 use std::ffi::OsString;
 
+use kalman_filter::{Measurements, Poses};
 
 fn get_nth_arg( n: usize) -> Result<OsString, Box<dyn Error>> {
     match env::args_os().nth( n ) {
@@ -18,7 +17,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let gyro_file = "data/u_gyro.csv";
     let wheel_file = "data/u_wheel.csv";
     let pos_file = "data/r_zw_t.csv";
-    let angle_file = "data/omega_bt.csv";
+    let angle_file = "data/theta_bt.csv";
  
 
     let measurements = Measurements::load(time_file, wheel_file, gyro_file)?;
@@ -26,10 +25,10 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     println!("{}", measurements[0]);
     println!("...");
-    println!("{}\n", measurements[measurements.length()-1]);
+    println!("{}\n", measurements[measurements.len()-1]);
     println!("{}", poses[0]);
     println!("...");
-    println!("{}", poses[poses.length()-1]);
+    println!("{}", poses[poses.len()-1]);
 
     Ok(())
 }
